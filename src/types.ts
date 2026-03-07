@@ -52,6 +52,7 @@ export interface ChatCompletionRequest {
   repetition_penalty?: number;
   min_tokens?: number;
   logprobs?: boolean;
+  user?: string;
 }
 
 export interface ChatCompletionChoice {
