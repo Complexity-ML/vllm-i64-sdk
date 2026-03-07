@@ -25,7 +25,7 @@ export class HttpClient {
     this.timeout = options.timeoutMs ?? 120_000;
   }
 
-  async fetch(path: string, init: RequestInit = {}): Promise<Response> {
+  async fetch(path: string, init: RequestInit = {}, externalSignal?: AbortSignal): Promise<Response> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(init.headers as Record<string, string>),
@@ -36,6 +36,15 @@ export class HttpClient {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
+
+    // Forward external abort signal
+    if (externalSignal) {
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else {
+        externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
+      }
+    }
 
     try {
       const res = await fetch(`${this.baseUrl}${path}`, {

@@ -48,17 +48,18 @@ export class ChatEndpoint {
    */
   async *stream(
     messages: ChatMessage[],
-    options: Omit<ChatCompletionRequest, "messages" | "stream"> = {},
+    options: Omit<ChatCompletionRequest, "messages" | "stream"> & { signal?: AbortSignal } = {},
   ): AsyncGenerator<string, void, undefined> {
+    const { signal, ...rest } = options;
     const res = await this.http.fetch("/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify({
         model: "default",
         messages,
-        ...options,
+        ...rest,
         stream: true,
       }),
-    });
+    }, signal);
     yield* this.http.readSSE(res);
   }
 
@@ -67,17 +68,18 @@ export class ChatEndpoint {
    */
   async *streamRaw(
     messages: ChatMessage[],
-    options: Omit<ChatCompletionRequest, "messages" | "stream"> = {},
+    options: Omit<ChatCompletionRequest, "messages" | "stream"> & { signal?: AbortSignal } = {},
   ): AsyncGenerator<StreamDelta, void, undefined> {
+    const { signal, ...rest } = options;
     const res = await this.http.fetch("/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify({
         model: "default",
         messages,
-        ...options,
+        ...rest,
         stream: true,
       }),
-    });
+    }, signal);
     yield* this.http.readSSERaw(res);
   }
 }

@@ -47,7 +47,10 @@ export interface ChatCompletionRequest {
   tools?: ToolDefinition[];
   tool_choice?: string | { type: string; function: { name: string } };
   stop?: string | string[];
+  min_p?: number;
+  typical_p?: number;
   repetition_penalty?: number;
+  min_tokens?: number;
   logprobs?: boolean;
 }
 
