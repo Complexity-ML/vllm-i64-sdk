@@ -1,6 +1,6 @@
 {
   "name": "vllm-i64",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TypeScript SDK for vllm-i64 — integer-first inference engine",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -28,7 +28,10 @@
     "moe",
     "openai",
     "ai",
-    "complexity"
+    "complexity",
+    "search",
+    "perplexity",
+    "security"
   ],
   "author": "Complexity-ML / INL",
   "license": "Apache-2.0",
