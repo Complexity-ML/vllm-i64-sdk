@@ -1,6 +1,6 @@
 {
   "name": "vllm-i64",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "TypeScript SDK for vllm-i64 — integer-first inference engine",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
