@@ -334,41 +334,19 @@ export interface SearchStatsResponse {
 }
 
 // =========================================================================
-// Agent (orchestrated tool-use loop)
+// Agent observability (live event stream)
 // =========================================================================
 
-export interface AgentRequest {
-  model: string;
-  messages: ChatMessage[];
-  provider?: string;
-  temperature?: number;
-  top_p?: number;
-  max_tokens?: number;
+export interface AgentEvent {
+  type: "sandbox" | "rag_search" | "rag_index" | "completion" | "error";
+  session_id: string;
+  timestamp: number;
+  event_id: string;
+  data: Record<string, unknown>;
 }
 
-export interface AgentToolCall {
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
-}
-
-export interface AgentToolResult {
-  tool_call_id: string;
-  name: string;
-  result: string;
-}
-
-export interface AgentStep {
-  step: number;
-  tool_calls: AgentToolCall[];
-  tool_results: AgentToolResult[];
-}
-
-export interface AgentResponse {
-  response: string | null;
-  model: string;
-  provider: string;
-  steps: AgentStep[];
-  finish_reason: string | null;
-  error?: { message: string; type: string };
+export interface AgentHistory {
+  events: AgentEvent[];
+  count: number;
+  subscribers: number;
 }

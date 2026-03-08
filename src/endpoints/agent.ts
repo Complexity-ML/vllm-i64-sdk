@@ -1,68 +1,106 @@
 /**
- * Agent endpoint — orchestrated tool-use loop via proxy.
+ * Agent observability endpoint — live event stream from vllm-i64.
  *
- * Sends messages to an external LLM (Claude, GPT, etc.) through
- * the complexity proxy. The server executes tools (sandbox, RAG)
- * and loops until the LLM produces a final text answer.
+ * Connects to /v1/agent/events (SSE) to receive real-time events
+ * from sandbox executions, RAG searches, and completions.
+ * Used by the complexity-website agent viewer and VSCode extensions.
  *
  * INL - 2025
  */
 
 import type { HttpClient } from "../client.js";
-import type {
-  ChatMessage,
-  AgentRequest,
-  AgentResponse,
-  AgentStep,
-} from "../types.js";
 
-export interface AgentRunOptions {
-  model: string;
-  provider?: string;
-  temperature?: number;
-  top_p?: number;
-  max_tokens?: number;
-  /** Called after each tool-use step completes. */
-  onStep?: (step: AgentStep) => void;
+export interface AgentEvent {
+  type: "sandbox" | "rag_search" | "rag_index" | "completion" | "error";
+  session_id: string;
+  timestamp: number;
+  event_id: string;
+  data: Record<string, unknown>;
+}
+
+export interface AgentHistory {
+  events: AgentEvent[];
+  count: number;
+  subscribers: number;
 }
 
 export class AgentEndpoint {
   constructor(private http: HttpClient) {}
 
   /**
-   * Run the agent loop — the server handles tool execution.
+   * Connect to the live event stream (SSE).
    *
    * @example
    * ```ts
-   * const result = await client.agent.run(
-   *   [{ role: "user", content: "Write a Python script that computes fibonacci(30)" }],
-   *   { model: "claude-sonnet-4-20250514" },
-   * );
-   * console.log(result.response);
-   * console.log(`Steps: ${result.steps.length}`);
+   * const ac = new AbortController();
+   * for await (const event of client.agent.events({ sessionId: "abc123" }, ac.signal)) {
+   *   console.log(event.type, event.data);
+   * }
    * ```
    */
-  async run(
-    messages: ChatMessage[],
-    options: AgentRunOptions,
-  ): Promise<AgentResponse> {
-    const body: AgentRequest = {
-      model: options.model,
-      messages,
-      provider: options.provider,
-      temperature: options.temperature,
-      top_p: options.top_p,
-      max_tokens: options.max_tokens,
-    };
+  async *events(
+    options: { sessionId?: string; history?: number } = {},
+    signal?: AbortSignal,
+  ): AsyncGenerator<AgentEvent, void, undefined> {
+    const params = new URLSearchParams();
+    if (options.sessionId) params.set("session_id", options.sessionId);
+    if (options.history !== undefined) params.set("history", String(options.history));
 
-    const res = await this.http.post<AgentResponse>("/api/proxy/agent", body);
+    const qs = params.toString();
+    const path = `/v1/agent/events${qs ? `?${qs}` : ""}`;
 
-    if (options.onStep) {
-      for (const step of res.steps) {
-        options.onStep(step);
+    const res = await this.http.fetch(path, {}, signal);
+    if (!res.body) return;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+          const payload = trimmed.slice(6);
+
+          try {
+            yield JSON.parse(payload) as AgentEvent;
+          } catch {
+            // skip malformed
+          }
+        }
       }
+    } finally {
+      reader.releaseLock();
     }
+  }
 
-    return res;
+  /**
+   * Get recent event history (JSON, not streaming).
+   *
+   * @example
+   * ```ts
+   * const history = await client.agent.history({ sessionId: "abc123", limit: 20 });
+   * console.log(history.events);
+   * ```
+   */
+  async history(
+    options: { sessionId?: string; limit?: number } = {},
+  ): Promise<AgentHistory> {
+    const params = new URLSearchParams();
+    if (options.sessionId) params.set("session_id", options.sessionId);
+    if (options.limit !== undefined) params.set("limit", String(options.limit));
+
+    const qs = params.toString();
+    const path = `/v1/agent/history${qs ? `?${qs}` : ""}`;
+
+    return this.http.get<AgentHistory>(path);
   }
 }
