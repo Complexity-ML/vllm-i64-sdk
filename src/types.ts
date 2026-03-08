@@ -277,61 +277,6 @@ export interface RAGStatsResult {
   dimension: number;
 }
 
-// =========================================================================
-// Search (Perplexity-style)
-// =========================================================================
-
-export interface SearchCompletionRequest {
-  query: string;
-  max_tokens?: number;
-  temperature?: number;
-  search_count?: number;
-  user?: string;
-  stream?: boolean;
-}
-
-export interface SearchSource {
-  index: number;
-  title: string;
-  url: string;
-  domain: string;
-  favicon: string;
-}
-
-export interface SearchCompletionResponse {
-  id: string;
-  object: "search.completion";
-  model: string;
-  query: string;
-  choices: {
-    index: number;
-    message: { role: "assistant"; content: string };
-    finish_reason: "stop" | "length";
-  }[];
-  sources: SearchSource[];
-  usage?: UsageInfo;
-}
-
-export interface SearchHistoryEntry {
-  query: string;
-  sources: SearchSource[];
-  answer: string;
-  timestamp: number;
-}
-
-export interface SearchHistoryResponse {
-  history: SearchHistoryEntry[];
-  count: number;
-}
-
-export interface SearchStatsResponse {
-  enabled: boolean;
-  num_partitions: number;
-  total_keys: number;
-  total_entries: number;
-  max_per_key: number;
-  persist_dir: string | null;
-}
 
 // =========================================================================
 // Agent observability (live event stream)

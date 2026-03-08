@@ -5,4 +5,4 @@ export { CacheEndpoint } from "./cache.js";
 export { LoRAEndpoint } from "./lora.js";
 export { MonitorEndpoint } from "./monitor.js";
 export { RAGEndpoint } from "./rag.js";
-export { SearchEndpoint } from "./search.js";
+

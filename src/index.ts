@@ -17,10 +17,6 @@
  *   process.stdout.write(chunk);
  * }
  *
- * // Search (Perplexity-style, token-routed isolation)
- * const search = await client.search.create({ query: "What is MoE?" });
- * console.log(search.sources);
- *
  * // Admin
  * await client.monitor.snapshot();
  * await client.cache.purge();
@@ -38,7 +34,7 @@ import { CacheEndpoint } from "./endpoints/cache.js";
 import { LoRAEndpoint } from "./endpoints/lora.js";
 import { MonitorEndpoint } from "./endpoints/monitor.js";
 import { RAGEndpoint } from "./endpoints/rag.js";
-import { SearchEndpoint } from "./endpoints/search.js";
+
 
 export class I64Client {
   private http: HttpClient;
@@ -57,8 +53,7 @@ export class I64Client {
   readonly monitor: MonitorEndpoint;
   /** RAG — index, search, stats. */
   readonly rag: RAGEndpoint;
-  /** Web search — Perplexity-style with token-routed isolation. */
-  readonly search: SearchEndpoint;
+
 
   /**
    * Create a vllm-i64 client.
@@ -75,7 +70,7 @@ export class I64Client {
     this.lora = new LoRAEndpoint(this.http);
     this.monitor = new MonitorEndpoint(this.http);
     this.rag = new RAGEndpoint(this.http);
-    this.search = new SearchEndpoint(this.http);
+
   }
 
   /** Server base URL. */
@@ -94,6 +89,6 @@ export { CacheEndpoint } from "./endpoints/cache.js";
 export { LoRAEndpoint } from "./endpoints/lora.js";
 export { MonitorEndpoint } from "./endpoints/monitor.js";
 export { RAGEndpoint } from "./endpoints/rag.js";
-export { SearchEndpoint } from "./endpoints/search.js";
+
 
 export default I64Client;
