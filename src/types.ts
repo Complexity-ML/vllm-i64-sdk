@@ -332,3 +332,43 @@ export interface SearchStatsResponse {
   max_per_key: number;
   persist_dir: string | null;
 }
+
+// =========================================================================
+// Agent (orchestrated tool-use loop)
+// =========================================================================
+
+export interface AgentRequest {
+  model: string;
+  messages: ChatMessage[];
+  provider?: string;
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+}
+
+export interface AgentToolCall {
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+export interface AgentToolResult {
+  tool_call_id: string;
+  name: string;
+  result: string;
+}
+
+export interface AgentStep {
+  step: number;
+  tool_calls: AgentToolCall[];
+  tool_results: AgentToolResult[];
+}
+
+export interface AgentResponse {
+  response: string | null;
+  model: string;
+  provider: string;
+  steps: AgentStep[];
+  finish_reason: string | null;
+  error?: { message: string; type: string };
+}

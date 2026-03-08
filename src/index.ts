@@ -31,6 +31,7 @@
  */
 
 import { HttpClient, type ClientOptions } from "./client.js";
+import { AgentEndpoint } from "./endpoints/agent.js";
 import { ChatEndpoint } from "./endpoints/chat.js";
 import { CompletionsEndpoint } from "./endpoints/completions.js";
 import { CacheEndpoint } from "./endpoints/cache.js";
@@ -42,6 +43,8 @@ import { SearchEndpoint } from "./endpoints/search.js";
 export class I64Client {
   private http: HttpClient;
 
+  /** Agent — orchestrated tool-use loop (sandbox + RAG) via external LLM. */
+  readonly agent: AgentEndpoint;
   /** Chat completions (streaming + non-streaming, tool_calls). */
   readonly chat: ChatEndpoint;
   /** Text completions (streaming + batch). */
@@ -65,6 +68,7 @@ export class I64Client {
    */
   constructor(baseUrl: string = "http://localhost:8000", options: ClientOptions = {}) {
     this.http = new HttpClient(baseUrl, options);
+    this.agent = new AgentEndpoint(this.http);
     this.chat = new ChatEndpoint(this.http);
     this.completions = new CompletionsEndpoint(this.http);
     this.cache = new CacheEndpoint(this.http);
@@ -83,6 +87,7 @@ export class I64Client {
 // Re-export everything
 export { HttpClient, type ClientOptions } from "./client.js";
 export type * from "./types.js";
+export { AgentEndpoint } from "./endpoints/agent.js";
 export { ChatEndpoint } from "./endpoints/chat.js";
 export { CompletionsEndpoint } from "./endpoints/completions.js";
 export { CacheEndpoint } from "./endpoints/cache.js";

@@ -1,3 +1,4 @@
+export { AgentEndpoint } from "./agent.js";
 export { ChatEndpoint } from "./chat.js";
 export { CompletionsEndpoint } from "./completions.js";
 export { CacheEndpoint } from "./cache.js";
